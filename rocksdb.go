@@ -38,7 +38,7 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
 
 	opts := gorocksdb.NewDefaultOptions()
-	opts.SetCompression(LZ4Compression)
+	opts.SetCompression(gorocksdb.LZ4Compression)
 	opts.SetBlockBasedTableFactory(bbto)
 	env := gorocksdb.NewDefaultEnv()
 	env.SetBackgroundThreads(4)
