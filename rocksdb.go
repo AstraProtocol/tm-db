@@ -28,6 +28,7 @@ type RocksDB struct {
 
 var _ DB = (*RocksDB)(nil)
 
+// https://github.com/EighteenZi/rocksdb_wiki/blob/master/RocksDB-Tuning-Guide.md#total-ordered-database-flash-storage
 func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	// default rocksdb option, good enough for most cases, including heavy workloads.
 	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
@@ -37,7 +38,22 @@ func NewRocksDB(name string, dir string) (*RocksDB, error) {
 	bbto.SetFilterPolicy(gorocksdb.NewBloomFilter(10))
 
 	opts := gorocksdb.NewDefaultOptions()
+	opts.SetCompression(LZ4Compression)
 	opts.SetBlockBasedTableFactory(bbto)
+	env := gorocksdb.NewDefaultEnv()
+	env.SetBackgroundThreads(4)
+	opts.SetEnv(env)
+	opts.SetMaxBackgroundCompactions(4)
+	opts.SetNumLevels(4)
+	opts.SetMaxWriteBufferNumber(3)
+	opts.SetTargetFileSizeBase(67108864)
+	opts.SetLevel0FileNumCompactionTrigger(8)
+	opts.SetLevel0StopWritesTrigger(24)
+	opts.SetLevel0SlowdownWritesTrigger(17)
+	opts.SetMaxBytesForLevelBase(536870912)
+	opts.SetMaxBytesForLevelMultiplier(8)
+	opts.SetAllowMmapReads(true)
+
 	// SetMaxOpenFiles to 4096 seems to provide a reliable performance boost
 	opts.SetMaxOpenFiles(4096)
 	opts.SetCreateIfMissing(true)
